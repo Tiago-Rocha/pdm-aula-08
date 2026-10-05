@@ -222,26 +222,75 @@ class _DetailCardState extends State<DetailCard> {
   }
 }
 
-/// The nine islands in a grid.
+/// The nine islands in a grid, with a search box on top.
 ///
-/// TODO 3: turn IslandsGrid into a StatefulWidget with a search box on top
-/// (a TextField with a TextEditingController, created in initState and freed
-/// in dispose). The grid shows only the islands whose name contains the text;
-/// a clear button appears when there is text; with no results, the text
-/// 'Nenhuma ilha encontrada'.
-class IslandsGrid extends StatelessWidget {
+/// Step 3: the search text is state of this widget; the grid shows only the
+/// islands whose name contains it.
+class IslandsGrid extends StatefulWidget {
   const IslandsGrid({super.key});
 
   @override
+  State<IslandsGrid> createState() => _IslandsGridState();
+}
+
+class _IslandsGridState extends State<IslandsGrid> {
+  late final TextEditingController _search;
+
+  @override
+  void initState() {
+    super.initState(); // once, before the first build
+    _search = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose(); // what initState creates, dispose frees
+    super.dispose();
+  }
+
+  // Calculated from the state on every build, never stored as state.
+  List<Island> get _filtered => islands
+      .where((i) => i.name.toLowerCase().contains(_search.text.toLowerCase()))
+      .toList();
+
+  @override
   Widget build(BuildContext context) {
-    return GridView.extent(
-      maxCrossAxisExtent: 160, // as many columns as fit, each up to 160 dp
-      padding: const EdgeInsets.all(16),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      shrinkWrap: true, // only the height it needs, inside the ListView
-      physics: const NeverScrollableScrollPhysics(), // the ListView scrolls
-      children: [for (final i in islands) IslandCard(island: i)],
+    final filtered = _filtered;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            controller: _search,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: 'Pesquisar ilha',
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(_search.clear),
+                    ),
+            ),
+            onChanged: (_) => setState(() {}), // the text is in _search
+          ),
+        ),
+        if (filtered.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(32),
+            child: Text('Nenhuma ilha encontrada'),
+          ),
+        GridView.extent(
+          maxCrossAxisExtent: 160, // as many columns as fit, each up to 160 dp
+          padding: const EdgeInsets.all(16),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          shrinkWrap: true, // only the height it needs, inside the ListView
+          physics: const NeverScrollableScrollPhysics(), // the ListView scrolls
+          children: [for (final i in filtered) IslandCard(island: i)],
+        ),
+      ],
     );
   }
 }
