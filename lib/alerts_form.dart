@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 /// Sign-up form for weather alerts.
 ///
-/// TODO 4: the button accepts anything, even empty fields. Give each
-/// TextFormField a validator (null when the value is valid, the error message
-/// when it is not), validate while the user types (autovalidateMode on the
-/// Form), and open the email keyboard on the e-mail field.
+/// Step 4: each field has a validator. The button only accepts the form when
+/// every validator returns null.
 class AlertsForm extends StatefulWidget {
   const AlertsForm({super.key});
 
@@ -40,6 +38,7 @@ class _AlertsFormState extends State<AlertsForm> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -51,7 +50,11 @@ class _AlertsFormState extends State<AlertsForm> {
                   border: OutlineInputBorder(),
                 ),
                 textInputAction: TextInputAction.next,
-                // the name: required, at least 3 letters
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Obrigatório';
+                  if (v.trim().length < 3) return 'Pelo menos 3 letras';
+                  return null; // null means valid
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -60,7 +63,14 @@ class _AlertsFormState extends State<AlertsForm> {
                   labelText: 'E-mail',
                   border: OutlineInputBorder(),
                 ),
-                // the e-mail: required, with an @ and a dot
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Obrigatório';
+                  if (!v.contains('@') || !v.contains('.')) {
+                    return 'E-mail inválido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               FilledButton(onPressed: _submit, child: const Text('Subscrever')),
