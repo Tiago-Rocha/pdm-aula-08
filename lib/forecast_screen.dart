@@ -7,24 +7,48 @@ import 'island_card.dart';
 
 /// Forecast screen for one location.
 ///
-/// TODO 2: turn ForecastScreen into a StatefulWidget with a bool _fahrenheit,
-/// put a SegmentedButton °C / °F in the AppBar actions, and pass the unit to
-/// CurrentConditions.
-class ForecastScreen extends StatelessWidget {
+/// Step 2: the unit (°C or °F) is state of this screen, because it is the
+/// closest common ancestor of the widgets that show temperatures.
+class ForecastScreen extends StatefulWidget {
   const ForecastScreen({super.key});
+
+  @override
+  State<ForecastScreen> createState() => _ForecastScreenState();
+}
+
+class _ForecastScreenState extends State<ForecastScreen> {
+  bool _fahrenheit = false; // the state lives in the State, not in the widget
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tempo Açores')),
+      appBar: AppBar(
+        title: const Text('Tempo Açores'),
+        actions: [
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(value: false, label: Text('°C')),
+              ButtonSegment(value: true, label: Text('°F')),
+            ],
+            selected: {_fahrenheit},
+            showSelectedIcon: false,
+            onSelectionChanged: (s) => setState(() => _fahrenheit = s.first),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ListView(
-        children: const [
-          IslandHeader(),
-          Padding(padding: EdgeInsets.all(16), child: CurrentConditions()),
-          DaysRow(),
-          Padding(padding: EdgeInsets.all(16), child: DetailCard()),
-          IslandsGrid(),
-          Padding(padding: EdgeInsets.all(16), child: AlertsForm()),
+        children: [
+          const IslandHeader(),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            // passed down by parameter: CurrentConditions does not keep it
+            child: CurrentConditions(fahrenheit: _fahrenheit),
+          ),
+          const DaysRow(),
+          const Padding(padding: EdgeInsets.all(16), child: DetailCard()),
+          const IslandsGrid(),
+          const Padding(padding: EdgeInsets.all(16), child: AlertsForm()),
         ],
       ),
     );
@@ -74,14 +98,17 @@ class IslandHeader extends StatelessWidget {
 
 /// Location name, current temperature and the min / max / rain row.
 class CurrentConditions extends StatelessWidget {
-  const CurrentConditions({super.key});
+  const CurrentConditions({super.key, required this.fahrenheit});
+
+  final bool fahrenheit; // chosen in ForecastScreen, received here
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final today = forecasts.first;
-    // TODO 2: with fahrenheit, show °F = °C × 9 / 5 + 32
-    String temp(double c) => '${c.round()} °C';
+    // °F = °C × 9 / 5 + 32
+    String temp(double c) =>
+        fahrenheit ? '${(c * 9 / 5 + 32).round()} °F' : '${c.round()} °C';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
