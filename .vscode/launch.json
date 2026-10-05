@@ -1,0 +1,10 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Tempo Açores (debug)",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}
