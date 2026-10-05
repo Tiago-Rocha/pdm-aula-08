@@ -146,11 +146,16 @@ class DaysRow extends StatelessWidget {
 
 /// Details of the first day, one per line.
 ///
-/// TODO 1: turn DetailCard into a StatefulWidget with a bool _expanded.
-/// The card starts with the minimum and the maximum only; tapping it shows
-/// or hides the wind and rain lines.
-class DetailCard extends StatelessWidget {
+/// Step 1: tapping the card shows or hides the wind and rain lines.
+class DetailCard extends StatefulWidget {
   const DetailCard({super.key});
+
+  @override
+  State<DetailCard> createState() => _DetailCardState();
+}
+
+class _DetailCardState extends State<DetailCard> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -165,18 +170,25 @@ class DetailCard extends StatelessWidget {
           ],
         );
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            line(Icons.thermostat, 'Mínima', '${f.tMin.round()} °C'),
-            const SizedBox(height: 8),
-            line(Icons.thermostat, 'Máxima', '${f.tMax.round()} °C'),
-            const SizedBox(height: 8),
-            line(Icons.air, 'Vento', '${f.windKmh.round()} km/h'),
-            const SizedBox(height: 8),
-            line(Icons.water_drop, 'Chuva', '${f.rainChance} %'),
-          ],
+      clipBehavior: Clip.antiAlias, // keeps the ripple inside the corners
+      child: InkWell(
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              line(Icons.thermostat, 'Mínima', '${f.tMin.round()} °C'),
+              const SizedBox(height: 8),
+              line(Icons.thermostat, 'Máxima', '${f.tMax.round()} °C'),
+              if (_expanded) ...[
+                const SizedBox(height: 8),
+                line(Icons.air, 'Vento', '${f.windKmh.round()} km/h'),
+                const SizedBox(height: 8),
+                line(Icons.water_drop, 'Chuva', '${f.rainChance} %'),
+              ],
+              Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+            ],
+          ),
         ),
       ),
     );
